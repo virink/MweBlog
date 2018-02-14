@@ -1,0 +1,17 @@
+<html>
+    <head>
+        <meta charset="utf-8" /> 
+        <title>{{ title }}</title>
+    </head>
+    <body>
+        {% for article in articles -%}
+        <hr />
+        <section>
+            {{ article.title }}<br />
+            {{ article.updated }}<br />
+            {{ article.tags }}<br />
+            {{ article.url }}
+        </section>
+        {% endfor %}
+    </body>
+</html>

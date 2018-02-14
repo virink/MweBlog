@@ -1,0 +1,17 @@
+<html>
+    <head>
+        <meta charset="utf-8" /> 
+        <title>{{ title }}</title>
+    </head>
+    <body>
+        {% for link in links -%}
+        <hr />
+        <section>
+            {{ link.name }}<br />
+            {{ link.img }}<br />
+            {{ link.info }}<br />
+            {{ link.url }}
+        </section>
+        {% endfor %}
+    </body>
+</html>
