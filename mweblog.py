@@ -99,6 +99,7 @@ class Generate:
         "tags": []
     }
     feeds = []
+    _feeds_uuid = {}
     md = None
     article_num = 0
     jinja2 = 0
@@ -123,6 +124,9 @@ class Generate:
             return res
 
     def write_html_file(self, filename, data, _type=".html"):
+        dirname = os.path.dirname(filename)
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
         with open(filename + _type, 'w') as f:
             f.write(data)
 
@@ -217,7 +221,7 @@ class Generate:
         self.jinja2.globals['pagi'] = PAGINATION
         self.jinja2.globals['tags_dir'] = TAGS_DIR
         # clear public
-        os.system("rm -rf %s && mkdir %s" % (PUBLIC_PATH, PUBLIC_PATH))
+        cmd("rm -rf %s && mkdir %s" % (PUBLIC_PATH, PUBLIC_PATH))
         # sys.exit(1)
         # generate articles
         self.generate_articles()
@@ -226,11 +230,11 @@ class Generate:
         # generate index
         self.generate_index()
         # generate achives
-        # self.generate_achives()
+        self.generate_achives()
         # generate about
-        # self.generate_about()
+        self.generate_about()
         # generate links
-        # self.generate_links()
+        self.generate_links()
         # generate sitemap
         self.generate_sitemap()
         # generate feed
@@ -305,29 +309,51 @@ class Generate:
                 title=title, content=content, date=date, tags=tags)
             # write file
             filename = os.path.join(PUBLIC_PATH, permalink[1:])
-            dirname = os.path.dirname(filename)
-            if not os.path.exists(dirname):
-                os.makedirs(dirname)
             if slug:
-                self.write_html_file(filename, res)
-            self.write_html_file(os.path.join(dirname, title), res)
+                self.write_html_file(os.path.join(
+                    os.path.dirname(filename), title), res)
+            self.write_html_file(filename, res)
         SI.info("generate articles (Total : %s) ok" % n)
+
+    def generate_links(self):
+        SI.info("generate links ...")
+        template = self.jinja2.get_template('links.html')
+        res = template.render(links=LINKS)
+        filename = os.path.join(PUBLIC_PATH, "links")
+        self.write_html_file(filename, res, ".html")
+        SI.print("-> /links.html")
+        self.write_html_file(os.path.join(filename, "index"), res, ".html")
+        SI.print("-> /links/index.html")
+        SI.info("generate links ok")
+
+    def generate_about(self):
+        SI.info("generate about ...")
+        template = self.jinja2.get_template('about.html')
+        res = template.render()
+        filename = os.path.join(PUBLIC_PATH, "about")
+        self.write_html_file(filename, res, ".html")
+        SI.print("-> /about.html")
+        self.write_html_file(os.path.join(filename, "index"), res, ".html")
+        SI.print("-> /about/index.html")
+        SI.info("generate about ok")
 
     def generate_sitemap(self):
         SI.info("generate sitemap ...")
-        template = self.jinja2.get_template('sitemap.xml')
+        template = self.jinja2.get_template(SITEMAP['template'] + '.xml')
         _sitemaps = self.sitemaps['article'][:100] \
             + self.sitemaps['tags'][:100] \
             + self.sitemaps['index'][:100]
         res = template.render(urls=_sitemaps)
-        self.write_html_file(os.path.join(PUBLIC_PATH, "sitemap"), res, ".xml")
+        self.write_html_file(os.path.join(
+            PUBLIC_PATH, SITEMAP['path']), res, ".xml")
+        SI.print("-> /%s/index.html" % (SITEMAP['path']))
         SI.info("generate sitemap ok")
 
     def generate_feed(self):
         _feeds = sorted(self.feeds, key=lambda feed: feed[
                         "updated"], reverse=True)
         SI.info("generate feed ...")
-        template = self.jinja2.get_template('feed.xml')
+        template = self.jinja2.get_template(FEED['template'] + '.xml')
         _updated = time.strftime(SITEMAP_FORMAT, time.localtime())
         # entries
         res = template.render(updated=_updated, entries=_feeds[:FEED['num']])
@@ -348,8 +374,6 @@ class Generate:
         template = self.jinja2.get_template('index.html')
         per = PAGINATION['per']
         total_page = len(self.feeds) // per + 1
-        # SI.debug(len(self.feeds))
-        # SI.debug(total_page)
         # first page
         curr_page = 1
         pagination = self.generate_pagination(curr_page, total_page)
@@ -359,21 +383,16 @@ class Generate:
         self.write_html_file(os.path.join(PUBLIC_PATH, "index"), res, ".html")
         SI.print("-> /index.html")
         # other page
-        dirname = os.path.join(PUBLIC_PATH, "page")
-        if not os.path.exists(dirname):
-            os.makedirs(dirname)
         for page in range(2, total_page + 1):
             pagination = self.generate_pagination(page, total_page)
             res = template.render(
                 pagination=pagination,
                 articles=self.feeds[(page - 1) * per:page * per])
             page = str(page)
-            _fpd = os.path.join(PUBLIC_PATH, "page", page)
-            if not os.path.exists(_fpd):
-                os.makedirs(_fpd)
-            self.write_html_file(os.path.join(dirname, page), res, ".html")
+            filename = os.path.join(PUBLIC_PATH, "page", page)
+            self.write_html_file(filename, res, ".html")
             SI.print("-> /page/%s.html" % page)
-            self.write_html_file(os.path.join(_fpd, "index"), res, ".html")
+            self.write_html_file(os.path.join(filename, "index"), res, ".html")
             SI.print("-> /page/%s/index.html" % page)
         SI.info("generate index ok")
 
@@ -381,86 +400,104 @@ class Generate:
         SI.info("generate tags ...")
         template = self.jinja2.get_template('tags.html')
         per = PAGINATION['per']
-        _feeds_uuid = {feed['uuid']: feed for feed in self.feeds}
-        SI.debug(_feeds_uuid.keys())
+        self._feeds_uuid = {feed['uuid']: feed for feed in self.feeds}
+        SI.debug(self._feeds_uuid.keys())
         for tag, articles in self.tag_articles.items():
             SI.info("generate tag [%s] ..." % tag)
             SI.print(tag, articles)
             total_page = len(articles) // per + 1
             # articles(uuid) to feeds
-            _feeds = [_feeds_uuid[article]
-                      for article in articles if article in _feeds_uuid]
+            _feeds = [self._feeds_uuid[article]
+                      for article in articles if article in self._feeds_uuid]
             # first page
             curr_page = 1
             pagination = self.generate_pagination(curr_page, total_page)
             res = template.render(
                 pagination=pagination, tag=tag,
                 articles=_feeds[:curr_page * per])
-            dirname = os.path.dirname(os.path.join(
-                PUBLIC_PATH, TAGS_DIR, tag, "index"))
-            SI.debug(dirname)
-            if not os.path.exists(dirname):
-                os.makedirs(dirname)
-            self.write_html_file(os.path.join(dirname, "index"), res, ".html")
+            filename = os.path.join(PUBLIC_PATH, TAGS_DIR, tag)
+            self.write_html_file(os.path.join(filename, "index"), res, ".html")
             SI.print("-> /%s/%s/index.html" % (TAGS_DIR, tag))
             # other page
-            dirname = os.path.join(dirname, "page")
-            if not os.path.exists(dirname):
-                os.makedirs(dirname)
             for page in range(2, total_page + 1):
                 pagination = self.generate_pagination(page, total_page)
                 res = template.render(
                     pagination=pagination, tag=tag,
                     articles=_feeds[(page - 1) * per:page * per])
                 page = str(page)
-                _fpd = os.path.join(PUBLIC_PATH, TAGS_DIR, tag, "page", page)
-                if not os.path.exists(_fpd):
-                    os.makedirs(_fpd)
-                self.write_html_file(os.path.join(dirname, page), res, ".html")
+                filename = os.path.join(filename, "page", page)
+                self.write_html_file(filename, res, ".html")
                 SI.print("-> /%s/%s/page/%s.html" % (TAGS_DIR, tag, page))
                 self.write_html_file(os.path.join(
-                    dirname, page, "index"), res, ".html")
+                    filename, "index"), res, ".html")
                 SI.print("-> /%s/%s/page/%s/index.html" %
                          (TAGS_DIR, tag, page))
         SI.info("generate tags ok")
         # sys.exit(0)
 
+    def generate_achives(self):
+        SI.info("generate achives ...")
+        template = self.jinja2.get_template('achives.html')
+        _achives = {}
+        # for fd in feeds_date:
+        for feed in self.feeds:
+            _feed = self._feeds_uuid[feed['uuid']]
+            _year = feed['pushed'][:4]
+            _mon = feed['pushed'][5:7]
+            if _year not in _achives:
+                _achives[_year] = {}
+            if _mon in _achives[_year]:
+                _achives[_year][_mon].append(_feed)
+            else:
+                _achives[_year][_mon] = [_feed]
+        for year, month in _achives.items():
+            SI.info("generate achives [%s] ..." % year)
+            SI.print(year, month.keys())
+            res = template.render(year=year, articles=month)
+            filename = os.path.join(PUBLIC_PATH, ARCHIVES_DIR, year)
+            self.write_html_file(filename, res, ".html")
+            SI.print("-> /%s/%s.html" % (ARCHIVES_DIR, year))
+            self.write_html_file(os.path.join(filename, "index"), res, ".html")
+            SI.print("-> /%s/%s/index.html" % (ARCHIVES_DIR, year))
+        SI.info("generate achives ok")
+
 
 def generate():
-    SI.info("generate start...")
+    SI.info("generate start ...")
     _generate = Generate()
     SI.info("generate all ok...")
 
 
 def deploy():
-    print("deploy")
+    SI.info("deploy start ...")
     DEPLOY_DIR = os.path.abspath(".deploy_git")
     if not os.path.exists(DEPLOY_DIR):
-        print("setup")
-        # setup
+        SI.info("setup ...")
+        # setup .deploy_git
+        # init, config user.name, config user.email, add -A, commit -m First
+        # commit
         os.mkdir(DEPLOY_DIR)
         os.chdir(os.path.join(BLOG_ROOT, DEPLOY_DIR))
-        os.system("touch placeholder")
+        cmd("touch placeholder")
         git("init")
         git("add -A")
         git("commit -m First commit")
         git("remote add origin %s" % DEPLOY['repository'])
         git("push -u origin master")
-    # setup .deploy_git
-    # init, config user.name, config user.email, add -A, commit -m First commit
     else:
-        print("push")
+        # push
+        # add -A, commit -m xxx, push -u repo.url HEAD:repo.branch --force
+        SI.info("push ...")
         # Clear .deploy_git
         clear_deploy_git()
         os.chdir(os.path.join(BLOG_ROOT, DEPLOY_DIR))
         # Copy public to .deploy_git
-        os.system("cp -r ./public/ ./")
+        cmd("cp -r %s/ ./" % PUBLIC_PATH)
         git("add -A")
         git("commit -m \"%s\"" % DEPLOY['message'])
-        git("push -u %s HEAD:%s --force" %
-            (DEPLOY['repository'], DEPLOY['branch']))
-    # push
-    # add -A, commit -m xxx, push -u repo.url HEAD:repo.branch --force
+        # git("push -u %s HEAD:%s --force" %
+        #     (DEPLOY['repository'], DEPLOY['branch']))
+        git("push -u origin master")
 
 
 def server():
@@ -497,8 +534,13 @@ def help():
     sys.exit(0)
 
 
+def cmd(argv):
+    SI.info("cmd : %s" % argv)
+    os.system(argv)
+
+
 def git(argv):
-    SI.show("emd : git %s" % argv)
+    SI.info("cmd : git %s" % argv)
     os.system("git %s" % argv)
 
 

@@ -59,14 +59,14 @@ THEME = "default"
 # Sitemap
 SITEMAP = {
     "path": "sitemap",
-    "template": "_template"
+    "template": "sitemap"
 }
 
 # Feed
 FEED = {
     "num": 50,
     "path": ["feed", "atom"],
-    "template": "_template"
+    "template": "feed"
 }
 
 # Social
