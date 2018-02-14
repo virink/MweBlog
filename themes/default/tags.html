@@ -1,0 +1,41 @@
+<html>
+    <head>
+        <meta charset="utf-8" /> 
+        <title>{{ title }}</title>
+    </head>
+    <body>
+        {% for article in articles -%}
+        <hr />
+        <section>
+            {{ article.title }}<br />
+            {{ article.updated }}<br />
+            {{ article.tags }}<br />
+            {{ article.url }}
+        </section>
+        {% endfor %}
+        {% if pagination %}
+        <ul class="pagination">
+            <!-- pre_page -->
+            {% for page in pagination.pre_page if page > 1 or pagination.page > 1 %}
+            <li>
+                <a href="/{{ tags_dir }}/{{ tag }}/{{ pagi.dir }}/{{ page }}.html">{{ page }}</a>
+            </li>
+            {% endfor %}
+            <!-- page -->
+            <li>
+                {% if pagination.page == 1 %}
+                <a href="/{{ tags_dir }}/{{ tag }}/index.html">{{ pagination.page }}</a>
+                {% else %}
+                <a href="/{{ tags_dir }}/{{ tag }}/{{ pagi.dir }}/{{ pagination.page }}.html">{{ pagination.page }}</a>
+                {% endif %}
+            </li>
+            <!-- next_page -->
+            {% for page in pagination.next_page %}
+            <li>
+                <a href="/{{ tags_dir }}/{{ tag }}/{{ pagi.dir }}/{{ page }}.html">{{ page }}</a>
+            </li>
+            {% endfor %}
+        </ul>  
+        {% endif %}
+    </body>
+</html>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>{{ title }}</title>
+  <subtitle>{{ subtitle }}</subtitle>
+  <description>{{ description }}</description>  
+  <link href="/feed.xml" rel="self"/>
+  <link href="{{  url }}/" />
+  <updated>{{ updated }}</updated>
+  <language>{{ language }}</language> 
+  <id>{{  url }}/</id>
+
+  <author>
+    <name>{{ author }}</name>
+    <email>{{ email }}</email>
+  </author>
+  
+  <generator uri="http://mweblog.tools.virzz.com/">{{ name }}</generator>
+
+  {% for entry in entries -%}
+  <entry>
+    <title>{{ entry.title }}</title>
+    <link href="{{  url }}{{ entry.url }}"/>
+    <id>{{  url }}{{ entry.url }}</id>
+    <updated>{{ entry.updated }}</updated>
+    <content type="html"><![CDATA[{{- entry.summary -}}]]></content>
+    {%- if entry.summary %}
+    <summary type="html">
+{{ entry.summary }}
+    </summary>
+    {%- endif -%}
+    {%- for tag in entry.tags %}
+    <category term="{{ tag }}" scheme="{{  url }}/{{tags_dir}}/{{ tag }}/"/>
+    {%- endfor %}
+  </entry>
+  {% endfor -%}
+
+</feed>
+  
