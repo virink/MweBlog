@@ -1,0 +1,6 @@
+biplist==1.0.3
+cffi==1.11.4
+Jinja2==2.10
+MarkupSafe==1.0
+misaka==2.1.0
+pycparser==2.18
