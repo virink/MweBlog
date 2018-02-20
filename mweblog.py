@@ -233,6 +233,10 @@ class Generate:
         cmd("rm -rf %s && mkdir %s" % (PUBLIC_PATH, PUBLIC_PATH))
         cmd("cp -r %s %s" %
             (os.path.join(BLOG_ROOT, "themes", THEME, "static"), PUBLIC_PATH))
+        # copy auth file
+        for f in AUTHFILE:
+            cmd("cp -r %s %s" %
+                (os.path.join(BLOG_ROOT, "themes", THEME, f), PUBLIC_PATH))
         # generate articles
         self.generate_articles()
         # generate tags

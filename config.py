@@ -23,7 +23,7 @@ DOCS = {
     "meta": DOC_ROOT + "/metadata/",
     "blog_cat": ["Blog", "test"]
 }
-#
+
 # docs
 # metadata
 
@@ -84,6 +84,10 @@ SOCIAL = {
     "twitter": "virinkz",
     "telegram": "virink"
 }
+
+AUTHFILE = [
+    'google02996eb2dd5b9b34.html', 'qcloud_cdn.html'
+]
 
 # Deployment
 DEPLOY = {
