@@ -1,17 +1,42 @@
-<html>
-    <head>
-        <meta charset="utf-8" /> 
-        <title>{{ title }}</title>
-    </head>
-    <body>
-        {% for article in articles -%}
-        <hr />
-        <section>
-            {{ article.title }}<br />
-            {{ article.updated }}<br />
-            {{ article.tags }}<br />
-            {{ article.url }}
-        </section>
-        {% endfor %}
-    </body>
-</html>
+{% extends "layout.html" %}
+
+{%- block page_title -%}
+Achives {{ year }}
+{%- endblock -%}
+
+{%- block keywords -%}
+,achives
+{%- endblock -%}
+
+{% block content %}
+    <div class="content-wrap">
+        <div class="achives-year">Achives {{ year }}</div>
+        {% for m,articles in month.items() -%}
+            <div class="achives-month">
+                <div class="achives-month-title">{{ m }}</div>
+                {% for article in articles -%}
+                <article class="article animated fadeIn">
+                    <div class="article-title">
+                        <i class="fa fa-book"></i>&nbsp;<a href="{{ article.url }}">{{ article.title }}</a>
+                    </div>
+                    <div class="article-tag">
+                        {% for tag in article.tags %}
+                        <div class="article-tag-item">
+                            <a href="/tags/{{ tag }}/"><i class="fa fa-tag"></i>{{ tag }}</a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="article-meta">
+                        <div class="article-date">
+                            <i class="fa fa-calendar"></i>&nbsp;<time datetime="{{ article.pushed }}">{{ article.pushed }}</time>
+                        </div>
+                        <div class="article-more">
+                            <i class="fa fa-link"></i>&nbsp;&nbsp;<a href="{{ article.url }}#more">More &gt;&gt;</a>
+                        </div>
+                    </div>
+                </article>
+                {% endfor -%}
+            </div>
+        {% endfor -%}
+    </div>
+{% endblock %}

@@ -91,6 +91,7 @@ class Generate:
     tags = None
     tag_articles = None
     article_tags = None
+    article_upload_img = None
     articles = None
     permalinks = {}
     sitemaps = {
@@ -138,11 +139,10 @@ class Generate:
             _plist = plist[plist['selectedItem']]
             if not _plist:
                 return False
-            for local, remote in plist[plist['selectedItem']][0].items():
-                if COS in remote:
-                    _img.update({local: remote})
+            for COS in _plist:
+                _img.update({COS['localURL']: COS['remoteURL']})
         except (InvalidPlistException, NotBinaryPlistException) as e:
-            print("Not a plist:", e)
+            SI.error("Not a plist:", e)
             _img = False
         return _img
 
@@ -154,16 +154,19 @@ class Generate:
         sql = "select * from tag"
         res = self.select(sql)
         self.tags = dict(res)
+        # SI.error(self.tags)
+        # sys.exit(1)
 
     def get_article_upload_img(self):
+        if self.article_upload_img:
+            return True
         paths = os.listdir(DOCS['meta'])
-        article_upload_img = {}
+        self.article_upload_img = {}
         for path in paths:
             if path.startswith("ImgUpload"):
                 tmp = self.read_plist(os.path.join(DOCS['meta'], path))
                 if tmp:
-                    article_upload_img.update(tmp)
-        return article_upload_img
+                    self.article_upload_img.update(tmp)
 
     def get_tag_articles(self):
         if self.tag_articles and self.article_tags:
@@ -203,6 +206,7 @@ class Generate:
         self.get_tag_articles()
         # articles
         self.get_blog_articles()
+        self.get_article_upload_img()
         # generate Markdown
         self.md = Markdown(
             HtmlRenderer(flags=('hard-wrap', 'skip-html')),
@@ -214,15 +218,21 @@ class Generate:
         self.jinja2.globals['title'] = TITLE
         self.jinja2.globals['subtitle'] = SUBTITLE
         self.jinja2.globals['description'] = DESCRIPTION
+        self.jinja2.globals['keywords'] = KEYWORDS
         self.jinja2.globals['url'] = URL
         self.jinja2.globals['author'] = AUTHOR
         self.jinja2.globals['language'] = LANGUAGE
         self.jinja2.globals['name'] = __NAME__
+        self.jinja2.globals['social'] = SOCIAL
+        self.jinja2.globals['theme'] = THEME
+        #
         self.jinja2.globals['pagi'] = PAGINATION
         self.jinja2.globals['tags_dir'] = TAGS_DIR
+
         # clear public
         cmd("rm -rf %s && mkdir %s" % (PUBLIC_PATH, PUBLIC_PATH))
-        # sys.exit(1)
+        cmd("cp -r %s %s" %
+            (os.path.join(BLOG_ROOT, "themes", THEME, "static"), PUBLIC_PATH))
         # generate articles
         self.generate_articles()
         # generate tags
@@ -259,9 +269,9 @@ class Generate:
             SI.info("%s [%s]" % (n, uuid))
             _content = self.read_md_file(uuid)
             # get_article_upload_img
-            article_upload_img = self.get_article_upload_img()
-            for local, remote in article_upload_img.items():
-                # if local in _content:
+            for local, remote in self.article_upload_img.items():
+                # if "media/" in _content:
+                #     SI.error(local, remote)
                 _content = _content.replace(local, remote)
             # summary
             summary = re.findall(r'###?#? .*', _content)
@@ -300,15 +310,18 @@ class Generate:
                 "url": permalink,
                 "updated": date['mod'],
                 "pushed": date['add'],
-                # "content": content[:200] + '...',
+                "content": content[:220] + '...',
                 "summary": escape_html('\n'.join(summary)),
                 "tags": tags,
             })
             # render html
             res = template.render(
-                title=title, content=content, date=date, tags=tags)
+                p_title=title, p_content=content, p_date=date,
+                p_url=permalink, p_tags=tags)
             # write file
-            filename = os.path.join(PUBLIC_PATH, permalink[1:])
+            filename = os.path.join(PUBLIC_PATH, permalink[1:-5])
+            # SI.error(filename)
+            # sys.exit(0)
             if slug:
                 self.write_html_file(os.path.join(
                     os.path.dirname(filename), title), res)
@@ -363,10 +376,12 @@ class Generate:
         SI.info("generate feed ok")
 
     def generate_pagination(self, curr_page, total_page):
+        pre_page = curr_page - 3 if curr_page > 3 else 1
+        next_page = curr_page + 3 if total_page - curr_page > 3 else total_page
         return {
             "page": curr_page,
-            "pre_page": [p for p in range(1, curr_page)],
-            "next_page": [p for p in range(curr_page + 1, total_page + 1)]
+            "pre_page": [p for p in range(pre_page, curr_page)],
+            "next_page": [p for p in range(curr_page + 1, next_page + 1)]
         }
 
     def generate_index(self):
@@ -398,6 +413,13 @@ class Generate:
 
     def generate_tags(self):
         SI.info("generate tags ...")
+        # tags index
+        template = self.jinja2.get_template('tags-index.html')
+        res = template.render(tags=self.tags)
+        filename = os.path.join(PUBLIC_PATH, TAGS_DIR, "index")
+        self.write_html_file(filename, res)
+        SI.print("-> /%s/index.html" % (TAGS_DIR))
+        # each tag
         template = self.jinja2.get_template('tags.html')
         per = PAGINATION['per']
         self._feeds_uuid = {feed['uuid']: feed for feed in self.feeds}
@@ -450,14 +472,22 @@ class Generate:
                 _achives[_year][_mon].append(_feed)
             else:
                 _achives[_year][_mon] = [_feed]
+        # TODO pagination
+        # pre year and next year
+        b = False
         for year, month in _achives.items():
             SI.info("generate achives [%s] ..." % year)
             SI.print(year, month.keys())
-            res = template.render(year=year, articles=month)
+            res = template.render(year=year, month=month)
+            if not b:
+                b = True
+                self.write_html_file(os.path.join(
+                    PUBLIC_PATH, ARCHIVES_DIR, "index"), res)
+                SI.print("-> /%s/index.html" % (ARCHIVES_DIR))
             filename = os.path.join(PUBLIC_PATH, ARCHIVES_DIR, year)
-            self.write_html_file(filename, res, ".html")
+            self.write_html_file(filename, res)
             SI.print("-> /%s/%s.html" % (ARCHIVES_DIR, year))
-            self.write_html_file(os.path.join(filename, "index"), res, ".html")
+            self.write_html_file(os.path.join(filename, "index"), res)
             SI.print("-> /%s/%s/index.html" % (ARCHIVES_DIR, year))
         SI.info("generate achives ok")
 
@@ -501,11 +531,12 @@ def deploy():
 
 
 def server():
-    import random
     SI.print("server")
     if not os.path.exists(PUBLIC_PATH):
         os.makedirs(PUBLIC_PATH)
-    PORT = 8088 + random.randint(1, 20)
+    # import random
+    # PORT = 8088 + random.randint(1, 20)
+    PORT = 8088
     os.chdir(PUBLIC_PATH)
     with TCPServer(("", PORT), SimpleHTTPRequestHandler) as httpd:
         SI.print("serving at port : ", PORT)
@@ -583,7 +614,11 @@ if __name__ == '__main__':
         generate()
         deploy()
     elif args == 'gs':
+        URL = "http://127.0.0.1:8088"
         generate()
         server()
+    elif args == 'gt':
+        URL = "http://mweblog.local.virzz.com"
+        generate()
     print()
     SI.debug("Total Usage Time : %4.4f sec" % (time.time() - start_time))

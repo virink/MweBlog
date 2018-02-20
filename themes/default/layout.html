@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="{{ language }}">
+<head>
+  {% if not p_title %}<base href="{{ url }}">{% endif %}
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>{% block page_title %}{% endblock %} - {{ title }}</title>
+  <meta name="author" content="{{ author }}">
+  <meta name="keywords" content="{{ keywords }}{% block keywords %}{% endblock %}">
+  <meta name="description" content="{{ description }}">
+  <!-- css files -->
+  <link href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="/static/css/default.css" rel="stylesheet">
+  {% block stylesheet %}{% endblock %}
+  <!-- favicon icon files -->
+  <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico">
+  <link rel="icon" href="/static/img/favicon.ico">
+  <!-- rss atom file -->
+  <link rel="alternate" href="/atom.xml" title="{{ title }}" type="application/atom+xml">
+  <script src="//cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+  <script src="/static/js/hackrain.js"></script>
+  <!--kill ie6 -->
+  <!--[if IE 6]>
+    <script src="//letskillie6.googlecode.com/svn/trunk/2/zh_CN.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <div class="wrapper">
+    <!-- Header Panel -->
+    <header>
+      <!-- Title -->
+      <div class="header">
+        <img src="/static/img/logo.png" alt="{{ title }} logo" />
+        <p ><a href="/" class="title">{{ title }}</a></p>
+        <p class="subtitle">{{ subtitle }}</p>
+      </div>
+      <!-- Social -->
+      {% include 'social.html' %}
+      <div class="divider__50"></div>
+      <!-- Nav -->
+      <nav>
+          <li><a href="/">首页</a></li>
+          <li><a href="/tags">标签</a></li>
+          <li><a href="/archives">归档</a></li>
+          <li><a href="/about">关于</a></li>
+          <li><a href="/links">友链</a></li>
+      </nav>
+    </header>
+
+    <div class="divider__70"></div>
+
+    <!-- Main panel -->
+    <div class="content">
+    {% block content %}{% endblock %}
+    </div>
+
+    <div class="divider__70"></div>
+
+    <!-- Footer Panel -->
+    <footer class="footer">
+      <center>
+        <span class="footer__copyright">&copy; 2017-2018. | ❤ <a href="mailto:{{ email }}"> {{ author }} </a> | 由<a href="#">{{ name }}</a>强力驱动 | 主题<a href="#">{{ theme }}</a></span>
+        <span>本站採用<i class="fa fa-creative-commons"></i><a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/" title="CC BY-NC-SA 4.0 International" target="_blank">"知识共享 署名-非商业性使用-禁止演绎 4.0 国际 许可协议"</a></span>
+        </center>
+    </footer>
+
+  </div>
+  <!-- js files -->
+  <!-- <script>!window.jQuery && document.write(unescape('%3Cscript src="/script/js/jquery.min.js"%3E%3C/script%3E'))</script> -->
+  <script>
+  $(document).ready(function(){
+    hackrain();
+  });
+  </script>
+  {% block javascripts %}{% endblock %}
+  {% include 'site-analytics.html' %}
+</body>
+</html>

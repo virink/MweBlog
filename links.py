@@ -117,7 +117,7 @@ LINKS = [
         "url": "https://breakwa11.blogspot.tw/",
         "name": "BreakWa11",
         "img": "https://lh3.googleusercontent.com/-pFBcXSGEWcg/AAAAAAAAAAI/AAAAAAAAAD4/QSZu0WGWMIk/s500-c/photo.jpg",
-        "info": "ShadowsocksR作者|萌妹子"
+        "info": "ShadowsocksR作者|萌妹子, 准备撸进围棋界"
     },
     {
         "url": "https://crane-yuan.github.io/",

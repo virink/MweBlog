@@ -1,9 +1,21 @@
-<html>
-    <head>
-        <meta charset="utf-8" /> 
-        <title>{{ title }}</title>
-    </head>
-    <body>
-        emmmmmmm
-    </body>
-</html>
+{% extends "layout.html" %}
+
+{%- block page_title -%}
+About me
+{%- endblock -%}
+
+{% block stylesheet %}
+{% endblock %}
+
+{% block content %}
+    <div class="content-wrap">
+        emmmmmmmmm
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    $(document).ready(function(){
+    });
+</script>
+{% endblock %}

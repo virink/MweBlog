@@ -1,20 +1,66 @@
-<html>
-    <head>
-        <title>
-            {{ title }}
-        </title>
-    </head>
-    <body>
-        <header>
-            <!-- title -->
-            {{ title }}
-            <!-- tags -->
-            {{ tags }}
-            <!-- date -->
-            {{ date }}
-        </header>
-        <article>
-            {{ content }}
+{% extends "layout.html" %}
+
+{% block page_title %}{{ p_title }}{% endblock %}
+
+{%- block keywords -%}
+    {%- if p_tags -%}
+        ,{{ p_tags|join(',') }}
+    {%- endif -%}
+{%- endblock -%}
+
+{% block content %}
+    <div class="content-wrap">
+        <article class="article animated fadeIn">
+            <div class="article-title">
+                <i class="fa fa-book"></i>&nbsp;<a href="{{ p_url }}">{{ p_title }}</a>
+            </div>
+            <div class="article-tag">
+                {% for tag in p_tags %}
+                <div class="article-tag-item">
+                    <a href="/tags/{{ tag }}/"><i class="fa fa-tag"></i>{{ tag }}</a>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="article-meta">
+                <div class="article-date">
+                    <i class="fa fa-calendar"></i>&nbsp;<time datetime="{{ p_date.add }}">{{ p_date.add }}</time>
+                </div>
+            </div>
+            <!-- <div class="clearfix"></div> -->
+            <section class="article-content markdown-body">
+                {{ p_content }}
+            </section>
+            <div class="article-copyright">
+              <span>本文标题&nbsp;:&nbsp;</span><a href="{{ p_url }}" target="_blank">{{ p_title }}</a><br />
+              <span>文章作者&nbsp;:&nbsp;</span><a href="{{ url }}" target="_blank">{{ author }}</a><br />
+              <span>发布时间&nbsp;:&nbsp;</span><i class="fa fa-calendar"></i>&nbsp;<time datetime="{{ p_date.add }}">{{ p_date.add }}</time><br />
+              <span>最后更新&nbsp;:&nbsp;</span><i class="fa fa-calendar"></i>&nbsp;<time datetime="{{ p_date.mod }}">{{ p_date.mod }}</time><br />
+              <span>本文链接&nbsp;:&nbsp;</span><a href="{{ url }}{{ p_url }}" title="{{ p_title }}" target="_blank">{{ url }}{{ p_url }}</a><br />
+              <span>转载声明&nbsp;:&nbsp;</span><i class="fa fa-creative-commons"></i>转载请保留原文链接及作者。
+              <span>转载说明&nbsp;:&nbsp;</span><i class="fa fa-exclamation-circle"></i>本卡片有模板生成，本人转载来的文章请忽略~~
+            </div>
         </article>
-    </body>
-</html>
+        <!-- <div class="toc" data-toc="h2,h3,h4,h5,h6"></div> -->
+        <div class="toc" data-toc="h2" data-tocContainer="section"></div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+
+<script src="//cdn.bootcss.com/mathjax/2.7.2/MathJax.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+<script src="//cdn.bootcss.com/github-repo-widget/e23d85ab8f/jquery.githubRepoWidget.min.js"></script>
+<script src="/static/js/toc.js"></script>
+<script>
+    $(document).ready(function(){
+        // highlight
+        $('code').each(function(i, block) {
+            hljs.highlightBlock(block);
+        });
+        // MathJax
+        MathJax.Hub.Config({ 
+            tex2jax: {inlineMath: [['[latex]','[/latex]'], ['\\(','\\)']]} 
+        });
+    });
+</script>
+{% endblock %}

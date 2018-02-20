@@ -1,41 +1,72 @@
-<html>
-    <head>
-        <meta charset="utf-8" /> 
-        <title>{{ title }}</title>
-    </head>
-    <body>
+{% extends "layout.html" %}
+
+{%- block page_title -%}
+{{ tag }} {%- if pagination and pagination.page > 1 %} - {{ pagination.page }} {% endif -%}
+{%- endblock -%}
+
+{%- block keywords -%}
+{%- endblock -%}
+
+{% block stylesheet %}
+{% endblock %}
+
+{% block content %}
+    <div class="content-wrap">
         {% for article in articles -%}
-        <hr />
-        <section>
-            {{ article.title }}<br />
-            {{ article.updated }}<br />
-            {{ article.tags }}<br />
-            {{ article.url }}
-        </section>
-        {% endfor %}
-        {% if pagination %}
-        <ul class="pagination">
-            <!-- pre_page -->
-            {% for page in pagination.pre_page if page > 1 or pagination.page > 1 %}
-            <li>
-                <a href="/{{ tags_dir }}/{{ tag }}/{{ pagi.dir }}/{{ page }}.html">{{ page }}</a>
-            </li>
+        <article class="article animated fadeIn">
+            <div class="article-title">
+                <i class="fa fa-book"></i>&nbsp;<a href="{{ article.url }}">{{ article.title }}</a>
+            </div>
+            <div class="article-tag">
+                {% for tag in article.tags %}
+                <div class="article-tag-item">
+                    <a href="/tags/{{ tag }}/"><i class="fa fa-tag"></i>{{ tag }}</a>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="article-meta">
+                <div class="article-date">
+                    <i class="fa fa-calendar"></i>&nbsp;<time datetime="{{ article.pushed }}">{{ article.pushed }}</time>
+                </div>
+                <div class="article-more">
+                    <i class="fa fa-link"></i>&nbsp;&nbsp;<a href="{{ article.url }}#more">More &gt;&gt;</a>
+                </div>
+            </div>
+            <div class="clearfix"></div>
+        </article>
+        {% endfor -%}
+
+        {%- if pagination %}
+        <div class="divider__70"></div>
+        <div class="pagination">
+            {# ==== pre_page ===== #}
+            {% for page in pagination.pre_page if pagination.page > 1 %}
+            {% if page == 1 %}
+            <li><a href="/{{ tags_dir }}/{{ tag }}/index.html">{{ page }}</a></li>
+            {% else %}
+            <li><a href="/{{ tags_dir }}/{{ tag }}/{{ pagi.dir }}/{{ page }}.html">{{ page }}</a></li>
+            {% endif %}
             {% endfor %}
-            <!-- page -->
+            {# ==== current page ===== #}
             <li>
-                {% if pagination.page == 1 %}
-                <a href="/{{ tags_dir }}/{{ tag }}/index.html">{{ pagination.page }}</a>
-                {% else %}
-                <a href="/{{ tags_dir }}/{{ tag }}/{{ pagi.dir }}/{{ pagination.page }}.html">{{ pagination.page }}</a>
-                {% endif %}
+                {%- if pagination.page == 1 -%}
+                <a class="current" href="/{{ tags_dir }}/{{ tag }}/index.html">{{ pagination.page }}</a>
+                {%- else -%}
+                <a class="current" href="/{{ pagi.dir }}/{{ pagination.page }}.html">{{ pagination.page }}</a>
+                {%- endif -%}
             </li>
-            <!-- next_page -->
-            {% for page in pagination.next_page %}
-            <li>
-                <a href="/{{ tags_dir }}/{{ tag }}/{{ pagi.dir }}/{{ page }}.html">{{ page }}</a>
-            </li>
+            {# ==== next_page ===== #}
+            {% for page in pagination.next_page  %}
+            <li><a href="/{{ tags_dir }}/{{ tag }}/{{ pagi.dir }}/{{ page }}.html">{{ page }}</a></li>
             {% endfor %}
-        </ul>  
-        {% endif %}
-    </body>
-</html>
+        </div>  
+        {% endif -%}
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    $(document).ready(function(){
+    });
+</script>
+{% endblock %}

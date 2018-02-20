@@ -1,0 +1,37 @@
+<!-- Social -->
+<div class="social">
+  <!-- RSS Atom -->
+  <li class="social__item">
+    <a href="{{ url }}/atom.xml" title="{{ author }}'s RSS">
+      <i class='fa fa-rss'></i>
+      <span class="label">RSS</span>
+    </a>
+  </li>
+  {%- if social.github -%}
+  <!-- Github -->
+  <li class="social__item">
+    <a href="https://github.com/{{ social.github }}" title="{{ author }}'s GitHub">
+      <i class='fa fa-github'></i>
+      <span class="label">GitHub</span>
+    </a>
+  </li>
+  {%- endif -%}
+  {%- if social.twitter -%}
+  <!-- Twitter -->
+  <li class="social__item">
+    <a href="https://twitter.com/{{ social.twitter }}" title="{{ author }}'s Twitter">
+      <i class='fa fa-twitter'></i>
+      <span class="label">Twitter</span>
+    </a>
+  </li>
+  {%- endif -%}
+  {%- if social.telegram -%}
+  <!-- Telegram -->
+  <li class="social__item">
+    <a href="https://telegram.me/{{ social.telegram }}" title="{{ author }}'s Telegram">
+      <i class='fa fa-paper-plane'></i>
+      <span class="label">Telegram</span>
+    </a>
+  </li>
+  {%- endif -%}
+</div>
