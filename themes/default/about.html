@@ -9,13 +9,119 @@ About me
 
 {% block content %}
     <div class="content-wrap">
-        emmmmmmmmm
+        <!-- Myself -->
+        <article class="article animated fadeIn">
+            <div class="article-title">
+                <i class="fa fa-book"></i>&nbsp;Myself
+            </div>
+            <div class="article-about">
+                <dl> 
+                    <dt>Name</dt><dd>XXX</dd>
+                    <dt>Age</dt><dd>20+</dd> 
+                    <dt>Gender</dt><dd>Male</dd>
+                    <dt>StarSign</dt><dd>Aquarius</dd> 
+                    <dt>BloodType</dt><dd>O</dd> 
+                </dl>
+            </div>
+        </article>
+        <!-- Social -->
+        <article class="article animated fadeIn">
+            <div class="article-title">
+                <i class="fa fa-book"></i>&nbsp;Social
+            </div>
+            <div class="article-about">
+                <dl>
+                    <!-- email -->
+                    <dt><i class='fa fa-envelope-o'></i>&nbsp;E-mail</dt>
+                    <dd><a href="mailto:{{ email }}" title="{{ email }}">{{ email }}</a></dd>
+                    <!-- github -->
+                    {%- if social.github -%}
+                    <dt><i class='fa fa-github'></i>&nbsp;Github</dt>
+                    <dd><a href="https://github.com/{{ social.github }}" title="{{ author }}">https://github.com/{{ social.github }}</a></dd>
+                    {%- endif -%}
+                    <!-- twitter -->
+                    {%- if social.twitter -%}
+                    <dt><i class='fa fa-twitter'></i>&nbsp;Twitter</dt>
+                    <dd><a href="https://twitter.com/{{ social.twitter }}" title="{{ author }}">https://twitter.com/{{ social.twitter }}</a></dd>
+                    {%- endif -%}
+                    <!-- telegram -->
+                    {%- if social.telegram -%}
+                    <dt><i class='fa fa-paper-plane'></i>&nbsp;Telegram</dt>
+                    <dd><a href="https://telegram.me/{{ social.telegram }}" title="{{ author }}">https://telegram.me/{{ social.telegram }}</a></dd>
+                    {%- endif -%}
+                </dl>
+            </div>
+        </article>
+        <!-- Skill -->
+        <article class="article animated fadeIn">
+            <div class="article-title">
+                <i class="fa fa-pie-chart"></i>&nbsp;Skill
+            </div>
+            <div class="article-about">
+                <dl>
+                    <dt>Markdown</dt>
+                    <dd><progress value="80" max="100"></progress><span>80%</span></dd>
+                    <dt>PHP</dt>
+                    <dd><progress value="75" max="100"></progress><span>75%</span></dd>
+                    <dt>Python</dt>
+                    <dd><progress value="75" max="100"></progress><span>75%</span></dd>
+                    <dt>MySQL</dt>
+                    <dd><progress value="64" max="100"></progress><span>64%</span></dd>
+                    <dt>RegularExpr</dt>
+                    <dd><progress value="62" max="100"></progress><span>62%</span></dd>
+                    <dt>C#</dt>
+                    <dd><progress value="57" max="100"></progress><span>57%</span></dd>
+                    <dt>JavaScript</dt>
+                    <dd><progress value="53" max="100"></progress><span>53%</span></dd>
+                    <dt>CSS</dt>
+                    <dd><progress value="45" max="100"></progress><span>45%</span></dd>
+                    <dt>Penetration</dt>
+                    <dd><progress value="42" max="100"></progress><span>42%</span></dd>
+                    <dt>C/C++</dt>
+                    <dd><progress value="40" max="100"></progress><span>40%</span></dd>
+                    <dt>Java-Android</dt>
+                    <dd><progress value="40" max="100"></progress><span>40%</span></dd>
+                    <dt>OSX-swift</dt>
+                    <dd><progress value="40" max="100"></progress><span>40%</span></dd>
+                </dl>
+            </div>
+        </article>
+        <!-- OpenSource and Works -->
+        <article class="article animated fadeIn">
+            <div class="article-title">
+                <i class="fa fa-book"></i>&nbsp;OpenSource and Works
+            </div>
+            <div class="article-about">
+                <dl>
+                    <dt>vMysqlMonitoring</dt><dd><a href="https://github.com/virink/vMysqlMonitoring" title="MySQL执行语句监视工具，辅助代码审计">MySQL执行语句监视工具，辅助代码审计</a></dd>
+                    <dt>VAuditDemo</dt><dd><a href="https://github.com/virink/VAuditDemo" title="PHP漏洞审计演练平台">PHP漏洞审计演练平台</a></dd>
+                </dl>
+            </div>
+        </article>
+        <!-- Articles -->
+        <article class="article animated fadeIn">
+            <div class="article-title">
+                <i class="fa fa-book"></i>&nbsp;Articles
+            </div>
+            <div class="article-about">
+                <dl>
+                    <dt>论如何在CTF比赛中搅“shi”</dt><dd><a href="http://www.freebuf.com/articles/web/118149.html">http://www.freebuf.com/articles/web/118149.html</a></dd>
+                </dl>
+            </div>
+        </article>
+        <!-- Teach Videos -->
+        <article class="article animated fadeIn">
+            <div class="article-title">
+                <i class="fa fa-book"></i>&nbsp;Teach Videos
+            </div>
+            <div class="article-about">
+                <dl>
+                    <dt>PHP代码审计实战</dt><dd><a href="https://www.ichunqiu.com/course/54473">https://www.ichunqiu.com/course/54473</a></dd>
+                </dl>
+            </div>
+        </article>
     </div>
 {% endblock %}
 
 {% block javascripts %}
-<script>
-    $(document).ready(function(){
-    });
-</script>
 {% endblock %}

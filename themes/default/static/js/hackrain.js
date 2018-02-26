@@ -1,11 +1,11 @@
-function hackrain( canvasId=0, timeout=50 ){
+var can;
+function hackrain( cid=0, timeout=50 ){
   if (window.jQuery == "undefined"){
-    console.log("Plz load jQuery");
     return 1;
   }
   var canvas;
-  if (canvasId)
-    canvas = document.getElementById(canvasId)
+  if (cid)
+    canvas = document.getElementById(cid)
   else{
     var canvas = document.createElement("canvas");
     canvas.style.position="fixed";
@@ -20,7 +20,6 @@ function hackrain( canvasId=0, timeout=50 ){
   h = canvas.height = s.height;
   words = Array(256).join("1").split("");
   can.fillStyle = color();
-
   setInterval(draw, timeout);
 }
 

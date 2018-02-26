@@ -12,31 +12,48 @@ Achives {{ year }}
     <div class="content-wrap">
         <div class="achives-year">Achives {{ year }}</div>
         {% for m,articles in month.items() -%}
-            <div class="achives-month">
-                <div class="achives-month-title">{{ m }}</div>
-                {% for article in articles -%}
-                <article class="article animated fadeIn">
-                    <div class="article-title">
-                        <i class="fa fa-book"></i>&nbsp;<a href="{{ article.url }}">{{ article.title }}</a>
+        <div class="achives-month">
+            <div class="achives-month-title">{{ m }}</div>
+            {% for article in articles -%}
+            <article class="article animated fadeIn">
+                <div class="article-title">
+                    <i class="fa fa-book"></i>&nbsp;<a href="{{ article.url }}">{{ article.title }}</a>
+                </div>
+                <div class="article-tag">
+                    {% for tag in article.tags %}
+                    <div class="article-tag-item">
+                        <a href="/tags/{{ tag }}/"><i class="fa fa-tag"></i>{{ tag }}</a>
                     </div>
-                    <div class="article-tag">
-                        {% for tag in article.tags %}
-                        <div class="article-tag-item">
-                            <a href="/tags/{{ tag }}/"><i class="fa fa-tag"></i>{{ tag }}</a>
-                        </div>
-                        {% endfor %}
+                    {% endfor %}
+                </div>
+                <div class="article-meta">
+                    <div class="article-date">
+                        <i class="fa fa-calendar"></i>&nbsp;<time datetime="{{ article.pushed }}">{{ article.pushed }}</time>
                     </div>
-                    <div class="article-meta">
-                        <div class="article-date">
-                            <i class="fa fa-calendar"></i>&nbsp;<time datetime="{{ article.pushed }}">{{ article.pushed }}</time>
-                        </div>
-                        <div class="article-more">
-                            <i class="fa fa-link"></i>&nbsp;&nbsp;<a href="{{ article.url }}#more">More &gt;&gt;</a>
-                        </div>
+                    <div class="article-more">
+                        <i class="fa fa-link"></i>&nbsp;&nbsp;<a href="{{ article.url }}#more">More &gt;&gt;</a>
                     </div>
-                </article>
-                {% endfor -%}
-            </div>
+                </div>
+            </article>
+            {% endfor -%}
+        </div>
         {% endfor -%}
+        {%- if pagination %}
+        <div class="divider__70"></div>
+        <div class="pagination">
+            {# ==== pre_page ===== #}
+            {% if pagination.pre_page  %}
+                {% if pagination.pre_page == index_year  %}
+                    <li><a href="/{{ archives_dir }}/index.html">{{ pagination.pre_page }}</a></li>
+                {% else %}
+                    <li><a href="/{{ archives_dir }}/{{ pagination.pre_page }}.html">{{ pagination.pre_page }}</a></li>
+                {% endif %}
+            {% endif %}
+            {# ==== next_page ===== #}
+            {% if pagination.next_page  %}
+            <li><a href="/{{ archives_dir }}/{{ pagination.next_page }}.html">{{ pagination.next_page }}</a></li>
+            {% endif %}
+        </div>  
+        {% endif -%}
     </div>
 {% endblock %}

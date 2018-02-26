@@ -86,7 +86,7 @@ SOCIAL = {
 }
 
 AUTHFILE = [
-    'google02996eb2dd5b9b34.html', 'qcloud_cdn.html'
+    '.gitignore', 'google02996eb2dd5b9b34.html', 'qcloud_cdn.html'
 ]
 
 # Deployment

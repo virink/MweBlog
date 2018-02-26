@@ -154,8 +154,6 @@ class Generate:
         sql = "select * from tag"
         res = self.select(sql)
         self.tags = dict(res)
-        # SI.error(self.tags)
-        # sys.exit(1)
 
     def get_article_upload_img(self):
         if self.article_upload_img:
@@ -223,11 +221,13 @@ class Generate:
         self.jinja2.globals['author'] = AUTHOR
         self.jinja2.globals['language'] = LANGUAGE
         self.jinja2.globals['name'] = __NAME__
+        self.jinja2.globals['email'] = EMAIL
         self.jinja2.globals['social'] = SOCIAL
         self.jinja2.globals['theme'] = THEME
         #
         self.jinja2.globals['pagi'] = PAGINATION
         self.jinja2.globals['tags_dir'] = TAGS_DIR
+        self.jinja2.globals['archives_dir'] = ARCHIVES_DIR
 
         # clear public
         cmd("rm -rf %s && mkdir %s" % (PUBLIC_PATH, PUBLIC_PATH))
@@ -477,17 +477,30 @@ class Generate:
             else:
                 _achives[_year][_mon] = [_feed]
         # TODO pagination
+        years = sorted(_achives.keys(), reverse=True)
+        index_year = max(years)
+        # years = [2018, 2017, 2016, 2015]
+
+        def _pagination(curr, total):
+            return {
+                "page": curr,
+                "pre_page": max([y for y in total if y > curr] or [0]),
+                "next_page": max([y for y in total if y < curr] or [0])
+            }
         # pre year and next year
-        b = False
         for year, month in _achives.items():
             SI.info("generate achives [%s] ..." % year)
             SI.print(year, month.keys())
-            res = template.render(year=year, month=month)
-            if not b:
-                b = True
+            pagination = _pagination(year, years)
+            res = template.render(year=year, month=month,
+                                  pagination=pagination, index_year=index_year)
+            if index_year == year:
                 self.write_html_file(os.path.join(
                     PUBLIC_PATH, ARCHIVES_DIR, "index"), res)
                 SI.print("-> /%s/index.html" % (ARCHIVES_DIR))
+                self.write_html_file(os.path.join(
+                    PUBLIC_PATH, ARCHIVES_DIR), res)
+                SI.print("-> /%s.html" % (ARCHIVES_DIR))
             filename = os.path.join(PUBLIC_PATH, ARCHIVES_DIR, year)
             self.write_html_file(filename, res)
             SI.print("-> /%s/%s.html" % (ARCHIVES_DIR, year))
@@ -500,6 +513,9 @@ def generate():
     SI.info("generate start ...")
     _generate = Generate()
     SI.info("generate all ok...")
+    SI.info("gulp start ...")
+    cmd("gulp")
+    SI.info("gulp all ok...")
 
 
 def deploy():

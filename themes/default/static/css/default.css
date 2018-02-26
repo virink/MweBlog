@@ -150,6 +150,36 @@ header .social__item a .label {
   font-size: 18px;
   text-align: center;
 }
+.article-about span {
+  color: #f00;
+  margin-left: 20px;
+}
+.article-about dl {
+  margin-left: 100px;
+}
+.article-about dl dt {
+  color: #ccc;
+  float: left;
+  font-weight: bold;
+  padding: 5px;
+  width: 280px;
+}
+.article-about dl dd {
+  padding: 5px 0;
+}
+.article-about progress {
+  width: 500px;
+  background: #333;
+  border-radius: 25px;
+}
+.article-about progress::-webkit-progress-bar {
+  border-radius: 25px;
+  background: #333;
+}
+.article-about progress::-webkit-progress-value {
+  border-radius: 25px;
+  background-image: -webkit-linear-gradient(135deg, transparent, transparent 33%, rgba(0,0,0,0.1) 33%, rgba(0,0,0,0.1) 66%, transparent 66%), -webkit-linear-gradient(top, rgba(255,255,255,0.25), rgba(0,0,0,0.2)), -webkit-linear-gradient(left, #09c, #ff0);
+}
 .article-date {
   float: left;
 }
