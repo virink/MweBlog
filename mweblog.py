@@ -5,9 +5,9 @@ __AUTHER__ = "Virink <virink@outlook.com>"
 __BLOG__ = "https://www.virzz.com"
 __GITHUB__ = "https://github.com/virink"
 
-__NAME__ = "mweblog"
+__NAME__ = "MWEBLOG"
 __VERSION__ = "0.1"
-DESCRIPTION = "A plugin for MWeb to generate website"
+DESCRIPTION = "A tools for MWeb to generate website"
 
 import os
 import sys

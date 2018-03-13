@@ -9,9 +9,9 @@ __AUTHER__ = "Virink <virink@outlook.com>"
 __BLOG__ = "https://www.virzz.com"
 __GITHUB__ = "https://github.com/virink"
 
-__NAME__ = "mweblog"
+__NAME__ = "MWEBLOG"
 __VERSION__ = "0.1"
-DESCRIPTION = "A plugin for MWeb to generate website"
+DESCRIPTION = "A tools for MWeb to generate website"
 
 BLOG_ROOT = "/Users/virink/Workspace/Blog"
 
@@ -92,8 +92,8 @@ AUTHFILE = [
 # Deployment
 DEPLOY = {
     "type": "git",
-    # "repository": "git@github.com:virink/virink.github.io.git",
-    "repository": "git@github.com:virink/testblog.git",
+    "repository": "git@github.com:virink/virink.github.io.git",
+    # "repository": "git@github.com:virink/testblog.git",
     "branch": "master",
     "message": "Updated %s By %s %s" % (time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), __NAME__, __VERSION__)
 }
