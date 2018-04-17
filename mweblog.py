@@ -14,6 +14,7 @@ import sys
 import time
 import sqlite3
 import re
+import requests
 
 from collections import defaultdict
 from http.server import SimpleHTTPRequestHandler
@@ -27,6 +28,8 @@ from config import *
 from links import LINKS
 
 os.chdir(BLOG_ROOT)
+
+_generate = None
 
 
 class showInfo:
@@ -254,6 +257,15 @@ class Generate:
         # generate feed
         self.generate_feed()
 
+    def generate_pagination(self, curr_page, total_page):
+        pre_page = curr_page - 3 if curr_page > 3 else 1
+        next_page = curr_page + 3 if total_page - curr_page > 3 else total_page
+        return {
+            "page": curr_page,
+            "pre_page": [p for p in range(pre_page, curr_page)],
+            "next_page": [p for p in range(curr_page + 1, next_page + 1)]
+        }
+
     def generate_articles(self):
         SI.info("generate articles ...")
         if len(self.articles) < 1:
@@ -332,89 +344,6 @@ class Generate:
             self.write_html_file(filename, res)
         SI.info("generate articles (Total : %s) ok" % n)
 
-    def generate_links(self):
-        SI.info("generate links ...")
-        template = self.jinja2.get_template('links.html')
-        res = template.render(links=LINKS)
-        filename = os.path.join(PUBLIC_PATH, "links")
-        self.write_html_file(filename, res, ".html")
-        SI.print("-> /links.html")
-        self.write_html_file(os.path.join(filename, "index"), res, ".html")
-        SI.print("-> /links/index.html")
-        SI.info("generate links ok")
-
-    def generate_about(self):
-        SI.info("generate about ...")
-        template = self.jinja2.get_template('about.html')
-        res = template.render()
-        filename = os.path.join(PUBLIC_PATH, "about")
-        self.write_html_file(filename, res, ".html")
-        SI.print("-> /about.html")
-        self.write_html_file(os.path.join(filename, "index"), res, ".html")
-        SI.print("-> /about/index.html")
-        SI.info("generate about ok")
-
-    def generate_sitemap(self):
-        SI.info("generate sitemap ...")
-        template = self.jinja2.get_template(SITEMAP['template'] + '.xml')
-        _sitemaps = self.sitemaps['article'][:100] \
-            + self.sitemaps['tags'][:100] \
-            + self.sitemaps['index'][:100]
-        res = template.render(urls=_sitemaps)
-        self.write_html_file(os.path.join(
-            PUBLIC_PATH, SITEMAP['path']), res, ".xml")
-        SI.print("-> /%s/index.html" % (SITEMAP['path']))
-        SI.info("generate sitemap ok")
-
-    def generate_feed(self):
-        _feeds = sorted(self.feeds, key=lambda feed: feed[
-                        "updated"], reverse=True)
-        SI.info("generate feed ...")
-        template = self.jinja2.get_template(FEED['template'] + '.xml')
-        _updated = time.strftime(SITEMAP_FORMAT, time.localtime())
-        # entries
-        res = template.render(updated=_updated, entries=_feeds[:FEED['num']])
-        for p in FEED['path']:
-            self.write_html_file(os.path.join(PUBLIC_PATH, p), res, ".xml")
-            SI.print("-> %s.xml" % p)
-        SI.info("generate feed ok")
-
-    def generate_pagination(self, curr_page, total_page):
-        pre_page = curr_page - 3 if curr_page > 3 else 1
-        next_page = curr_page + 3 if total_page - curr_page > 3 else total_page
-        return {
-            "page": curr_page,
-            "pre_page": [p for p in range(pre_page, curr_page)],
-            "next_page": [p for p in range(curr_page + 1, next_page + 1)]
-        }
-
-    def generate_index(self):
-        SI.info("generate index ...")
-        template = self.jinja2.get_template('index.html')
-        per = PAGINATION['per']
-        total_page = len(self.feeds) // per + 1
-        # first page
-        curr_page = 1
-        pagination = self.generate_pagination(curr_page, total_page)
-        res = template.render(
-            pagination=pagination,
-            articles=self.feeds[:curr_page * per])
-        self.write_html_file(os.path.join(PUBLIC_PATH, "index"), res, ".html")
-        SI.print("-> /index.html")
-        # other page
-        for page in range(2, total_page + 1):
-            pagination = self.generate_pagination(page, total_page)
-            res = template.render(
-                pagination=pagination,
-                articles=self.feeds[(page - 1) * per:page * per])
-            page = str(page)
-            filename = os.path.join(PUBLIC_PATH, "page", page)
-            self.write_html_file(filename, res, ".html")
-            SI.print("-> /page/%s.html" % page)
-            self.write_html_file(os.path.join(filename, "index"), res, ".html")
-            SI.print("-> /page/%s/index.html" % page)
-        SI.info("generate index ok")
-
     def generate_tags(self):
         SI.info("generate tags ...")
         # tags index
@@ -460,6 +389,33 @@ class Generate:
                          (TAGS_DIR, tag, page))
         SI.info("generate tags ok")
         # sys.exit(0)
+
+    def generate_index(self):
+        SI.info("generate index ...")
+        template = self.jinja2.get_template('index.html')
+        per = PAGINATION['per']
+        total_page = len(self.feeds) // per + 1
+        # first page
+        curr_page = 1
+        pagination = self.generate_pagination(curr_page, total_page)
+        res = template.render(
+            pagination=pagination,
+            articles=self.feeds[:curr_page * per])
+        self.write_html_file(os.path.join(PUBLIC_PATH, "index"), res, ".html")
+        SI.print("-> /index.html")
+        # other page
+        for page in range(2, total_page + 1):
+            pagination = self.generate_pagination(page, total_page)
+            res = template.render(
+                pagination=pagination,
+                articles=self.feeds[(page - 1) * per:page * per])
+            page = str(page)
+            filename = os.path.join(PUBLIC_PATH, "page", page)
+            self.write_html_file(filename, res, ".html")
+            SI.print("-> /page/%s.html" % page)
+            self.write_html_file(os.path.join(filename, "index"), res, ".html")
+            SI.print("-> /page/%s/index.html" % page)
+        SI.info("generate index ok")
 
     def generate_achives(self):
         SI.info("generate achives ...")
@@ -508,14 +464,71 @@ class Generate:
             SI.print("-> /%s/%s/index.html" % (ARCHIVES_DIR, year))
         SI.info("generate achives ok")
 
+    def generate_links(self):
+        SI.info("generate links ...")
+        template = self.jinja2.get_template('links.html')
+        res = template.render(links=LINKS)
+        filename = os.path.join(PUBLIC_PATH, "links")
+        self.write_html_file(filename, res, ".html")
+        SI.print("-> /links.html")
+        self.write_html_file(os.path.join(filename, "index"), res, ".html")
+        SI.print("-> /links/index.html")
+        SI.info("generate links ok")
+
+    def generate_about(self):
+        SI.info("generate about ...")
+        template = self.jinja2.get_template('about.html')
+        res = template.render()
+        filename = os.path.join(PUBLIC_PATH, "about")
+        self.write_html_file(filename, res, ".html")
+        SI.print("-> /about.html")
+        self.write_html_file(os.path.join(filename, "index"), res, ".html")
+        SI.print("-> /about/index.html")
+        SI.info("generate about ok")
+
+    def generate_sitemap(self):
+        SI.info("generate sitemap ...")
+        template = self.jinja2.get_template(SITEMAP['template'] + '.xml')
+        _sitemaps = self.sitemaps['article'][:100] \
+            + self.sitemaps['tags'][:100] \
+            + self.sitemaps['index'][:100]
+        res = template.render(urls=_sitemaps)
+        self.write_html_file(os.path.join(
+            PUBLIC_PATH, SITEMAP['path']), res, ".xml")
+        SI.print("-> /%s/index.html" % (SITEMAP['path']))
+        SI.info("generate sitemap ok")
+
+    def generate_feed(self):
+        _feeds = sorted(self.feeds, key=lambda feed: feed[
+                        "updated"], reverse=True)
+        SI.info("generate feed ...")
+        template = self.jinja2.get_template(FEED['template'] + '.xml')
+        _updated = time.strftime(SITEMAP_FORMAT, time.localtime())
+        # entries
+        res = template.render(updated=_updated, entries=_feeds[:FEED['num']])
+        for p in FEED['path']:
+            self.write_html_file(os.path.join(PUBLIC_PATH, p), res, ".xml")
+            SI.print("-> %s.xml" % p)
+        SI.info("generate feed ok")
+
+    def links_submit(self):
+        _submits = self.sitemaps['tags'] + self.sitemaps['index']
+        _submits = [urls['loc'] for urls in _submits]
+        _headers = {'Content-Type': 'text/plain'}
+        _datas = '\n'.join(_submits)
+        res = requests.post('http://data.zz.baidu.com/urls?site=%s&token=%s' %
+                            (__BLOG__, SUBMIT_LINK_BAIDU_TOKEN), headers=_headers, data=_datas)
+        if res.status_code == 200:
+            SI.info("Submit links to baidu Successfully")
+        else:
+            SI.warn(res.content)
+
 
 def generate():
+    global _generate
     SI.info("generate start ...")
     _generate = Generate()
     SI.info("generate all ok...")
-    SI.info("gulp start ...")
-    cmd("gulp")
-    SI.info("gulp all ok...")
 
 
 def deploy():
@@ -548,6 +561,10 @@ def deploy():
         # git("push -u %s HEAD:%s --force" %
         #     (DEPLOY['repository'], DEPLOY['branch']))
         git("push -u origin master")
+    # link submit to baidu
+    global _generate
+    if _generate:
+        _generate.links_submit()
 
 
 def server():

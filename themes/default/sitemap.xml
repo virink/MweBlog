@@ -5,5 +5,5 @@
     <loc>{{url.loc}}</loc>
     <lastmod>{{url.lastmod}}</lastmod>
   </url>
-  {% endfor -%}
+  {%- endfor %}
 </urlset>
