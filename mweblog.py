@@ -192,7 +192,7 @@ class Generate:
         sql = "select a.uuid,a.docName,a.dateAdd,a.dateModif,a.dateArt from article a \
             LEFT JOIN cat_article ca on a.uuid=ca.aid \
             LEFT JOIN cat c on ca.rid=c.uuid \
-            WHERE %s ORDER BY dateAdd DESC" % where_sql
+            WHERE %s ORDER BY a.dateAdd DESC" % where_sql
         self.articles = self.select(sql)
 
     def __del__(self):
@@ -573,7 +573,7 @@ def server():
         os.makedirs(PUBLIC_PATH)
     # import random
     # PORT = 8088 + random.randint(1, 20)
-    PORT = 8088
+    PORT = int(sys.argv[2]) if len(sys.argv) > 2 else 8088
     os.chdir(PUBLIC_PATH)
     with TCPServer(("", PORT), SimpleHTTPRequestHandler) as httpd:
         SI.print("serving at port : ", PORT)
@@ -629,7 +629,7 @@ def clear_deploy_git(path=os.path.abspath(".deploy_git")):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
+    if len(sys.argv) < 2:
         help()
     args = (sys.argv[1]).lower()
     start_time = time.time()
@@ -655,7 +655,8 @@ if __name__ == '__main__':
         generate()
         server()
     elif args == 'gt':
-        URL = "http://mweblog.local.virzz.com"
-        generate()
+        if sys.argv[2]:
+            URL = sys.argv[2]
+            generate()
     print()
     SI.debug("Total Usage Time : %4.4f sec" % (time.time() - start_time))

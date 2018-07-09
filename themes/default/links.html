@@ -5,23 +5,36 @@ Links
 {%- endblock -%}
 
 {% block content %}
-    <div class="content-wrap">
-        {% for link in links -%}
-        <article class="article animated fadeIn">
-            <div class="article-title">
-                <i class="fa fa-link"></i>&nbsp;<a href="{{ link.url }}">{{ link.name }}</a>
-            </div>
-            {#
-            <!-- <div class="article-meta">
-                <div class="article-date">
-                    <i class="fa fa-calendar"></i>&nbsp; {{ link.info }}
+    <div class="content-wrap article">
+        <div class="link">
+            {% for link in links -%}
+            <a href="{{ link.url }}">
+                <div class="link-item">
+                    <div class="link-img">
+                        <img src="{% if link.img %}{{ link.img }}{% else %}//img.virzz.com/deafult.jpg{% endif %}" alt="{{ link.name }}">
+                    </div>
+                    <div class="link-title">
+                        <i class="fa fa-link"></i>&nbsp; {{ link.name }}
+                    </div>
+                    <div class="link-info">{{- link.info -}}</div>
                 </div>
-            </div> -->
-            #}
-        </article>
-        {% endfor -%}
+            </a>
+            {% endfor -%}
+        </div>
     </div>
 {% endblock %}
 
-{# % block javascripts %}
-{% endblock % #}
+{% block javascripts %}
+<script src="//cdn.bootcss.com/masonry/4.2.1/masonry.pkgd.min.js"></script>
+<script>
+    $( document ).ready( function() {
+        $('.link').masonry({
+          itemSelector: '.link-item',
+          columnWidth: 233,
+          percentPosition: true,
+          gutter: 20,
+          isAnimated: true
+        });
+    });
+</script>
+{% endblock %}
