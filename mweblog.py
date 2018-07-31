@@ -16,43 +16,53 @@ import sqlite3
 import re
 import requests
 
+from html import escape
 from collections import defaultdict
 from http.server import SimpleHTTPRequestHandler
 from socketserver import TCPServer
 
 from biplist import *
-from misaka import Markdown, HtmlRenderer, escape_html
 from jinja2 import Environment, PackageLoader
+import markdown
 
 from config import *
 from links import LINKS
 
 os.chdir(BLOG_ROOT)
-
 _generate = None
+
+
+def markdown_it(v):
+    _exts = [
+        'markdown.extensions.tables',
+        'markdown.extensions.nl2br',
+        'markdown.extensions.smarty',
+        'markdown.extensions.fenced_code'
+    ]
+    res = markdown.markdown(v, extensions=_exts)
+    return res
 
 
 class showInfo:
 
     cs = {
-        'd': (30, 40),  # dark = black
-        'r': (31, 41),
-        'g': (32, 42),
-        'y': (33, 43),
-        'b': (34, 44),
-        'p': (35, 45),
-        'c': (36, 46),  # cyan
-        'w': (37, 47)
+        'd': 30,  # dark
+        'r': 31,
+        'g': 32,
+        'y': 33,
+        'b': 34,
+        'p': 35,
+        'c': 36,  # cyan
+        'w': 37
     }
     t = True
     c = 'w'
-    b = 'd'
 
     def _print(self, *msg):
         if self.t:
-            print("\033[32;40m[%s]  " % (time.strftime(
+            print("\033[36m[%s]  " % (time.strftime(
                 '%Y-%m-%d %H:%M:%S', time.localtime())), end='')
-        print("\033[%s;%sm" % (self.cs[self.c][0], self.cs[self.b][1]), end='')
+        print("\033[%sm" % (self.cs[self.c]), end='')
         print(*msg, end='')
         print("\033[m")
 
@@ -76,13 +86,11 @@ class showInfo:
         self.c = 'c'
         self._print(*msg)
 
-    def show(self, *msg, c='w', b='d'):
+    def show(self, *msg, c='w'):
         self.c = c
-        self.b = b
         self.t = False
         self._print(*msg)
         self.t = True
-        self.b = 'd'
 
 SI = showInfo()
 
@@ -201,7 +209,7 @@ class Generate:
         if self.conn:
             self.conn.close()
 
-    def __init__(self):
+    def generate_start(self):
         # tags
         self.get_tags()
         self.get_tag_articles()
@@ -209,9 +217,7 @@ class Generate:
         self.get_blog_articles()
         self.get_article_upload_img()
         # generate Markdown
-        self.md = Markdown(
-            HtmlRenderer(flags=('hard-wrap', 'skip-html')),
-            extensions=('fenced-code',))
+        self.md = markdown_it
         # jinja2
         self.jinja2 = Environment(
             loader=PackageLoader('mweblog', "themes/%s" % THEME))
@@ -293,8 +299,8 @@ class Generate:
             summary = re.findall(r'###?#? .*', _content)
             _content = _content.split("\n")
             title = _content[0][2:]
-            content = self.md('\n'.join(_content[1:]))
-            # tags
+            __content = _content[1:]
+            content = self.md('\n'.join(__content))
             if uuid in self.article_tags:
                 tags = self.article_tags[uuid]
             else:
@@ -327,7 +333,7 @@ class Generate:
                 "updated": date['mod'],
                 "pushed": date['add'],
                 "content": content[:220] + '...',
-                "summary": escape_html('\n'.join(summary)),
+                "summary": escape('\n'.join(summary)),
                 "tags": tags,
             })
             # render html
@@ -489,10 +495,12 @@ class Generate:
     def generate_sitemap(self):
         SI.info("generate sitemap ...")
         template = self.jinja2.get_template(SITEMAP['template'] + '.xml')
-        _sitemaps = self.sitemaps['article'][:100] \
-            + self.sitemaps['tags'][:100] \
-            + self.sitemaps['index'][:100]
-        res = template.render(urls=_sitemaps)
+        self._sitemaps = self.sitemaps['article'][:50] \
+            + self.sitemaps['tags'][:50] \
+            + self.sitemaps['index'][:50]
+        # print(self.sitemaps)
+        # print(_sitemaps)
+        res = template.render(urls=self._sitemaps)
         self.write_html_file(os.path.join(
             PUBLIC_PATH, SITEMAP['path']), res, ".xml")
         SI.print("-> /%s/index.html" % (SITEMAP['path']))
@@ -511,11 +519,44 @@ class Generate:
             SI.print("-> %s.xml" % p)
         SI.info("generate feed ok")
 
+    def deploy(self):
+        SI.info("deploy start ...")
+        DEPLOY_DIR = os.path.abspath(".deploy_git")
+        if not os.path.exists(DEPLOY_DIR):
+            SI.info("setup ...")
+            # setup .deploy_git
+            # init, config user.name, config user.email, add -A, commit -m First
+            # commit
+            os.mkdir(DEPLOY_DIR)
+            os.chdir(os.path.join(BLOG_ROOT, DEPLOY_DIR))
+            cmd("touch placeholder")
+            git("init")
+            git("add -A")
+            git("commit -m First commit")
+            git("remote add origin %s" % DEPLOY['repository'])
+            git("push -u origin master")
+        else:
+            # push
+            # add -A, commit -m xxx, push -u repo.url HEAD:repo.branch --force
+            SI.info("push ...")
+            # Clear .deploy_git
+            clear_deploy_git()
+            os.chdir(os.path.join(BLOG_ROOT, DEPLOY_DIR))
+            # Copy public to .deploy_git
+            cmd("cp -r %s/ ./" % PUBLIC_PATH)
+            git("add -A")
+            git("commit -m \"%s\"" % DEPLOY['message'])
+            # git("push -u %s HEAD:%s --force" %
+            #     (DEPLOY['repository'], DEPLOY['branch']))
+            git("push -u origin master")
+        # link submit to baidu
+        # self.links_submit()
+
     def links_submit(self):
-        _submits = self.sitemaps['tags'] + self.sitemaps['index']
-        _submits = [urls['loc'] for urls in _submits]
+        _submits = [urls['loc'] for urls in self._sitemaps]
         _headers = {'Content-Type': 'text/plain'}
         _datas = '\n'.join(_submits)
+        # SI.debug(_datas)
         res = requests.post('http://data.zz.baidu.com/urls?site=%s&token=%s' %
                             (__BLOG__, SUBMIT_LINK_BAIDU_TOKEN), headers=_headers, data=_datas)
         if res.status_code == 200:
@@ -525,46 +566,18 @@ class Generate:
 
 
 def generate():
-    global _generate
     SI.info("generate start ...")
-    _generate = Generate()
+    _generate.generate_start()
     SI.info("generate all ok...")
 
 
 def deploy():
     SI.info("deploy start ...")
-    DEPLOY_DIR = os.path.abspath(".deploy_git")
-    if not os.path.exists(DEPLOY_DIR):
-        SI.info("setup ...")
-        # setup .deploy_git
-        # init, config user.name, config user.email, add -A, commit -m First
-        # commit
-        os.mkdir(DEPLOY_DIR)
-        os.chdir(os.path.join(BLOG_ROOT, DEPLOY_DIR))
-        cmd("touch placeholder")
-        git("init")
-        git("add -A")
-        git("commit -m First commit")
-        git("remote add origin %s" % DEPLOY['repository'])
-        git("push -u origin master")
-    else:
-        # push
-        # add -A, commit -m xxx, push -u repo.url HEAD:repo.branch --force
-        SI.info("push ...")
-        # Clear .deploy_git
-        clear_deploy_git()
-        os.chdir(os.path.join(BLOG_ROOT, DEPLOY_DIR))
-        # Copy public to .deploy_git
-        cmd("cp -r %s/ ./" % PUBLIC_PATH)
-        git("add -A")
-        git("commit -m \"%s\"" % DEPLOY['message'])
-        # git("push -u %s HEAD:%s --force" %
-        #     (DEPLOY['repository'], DEPLOY['branch']))
-        git("push -u origin master")
+    _generate.deploy()
+    SI.info("deploy all ok...")
     # link submit to baidu
-    global _generate
-    if _generate:
-        _generate.links_submit()
+    SI.info("push baidu start ...")
+    _generate.links_submit()
 
 
 def server():
@@ -627,6 +640,8 @@ def clear_deploy_git(path=os.path.abspath(".deploy_git")):
     else:
         os.remove(path)
 
+
+_generate = Generate()
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:

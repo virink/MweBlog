@@ -24,6 +24,8 @@ DOCS = {
     "blog_cat": ["Blog", "test"]
 }
 
+SUBMIT_LINK_BAIDU_TOKEN = 'xhWDpEdlGfgLkbsr'
+
 # docs
 # metadata
 
@@ -86,7 +88,7 @@ SOCIAL = {
 }
 
 AUTHFILE = [
-    '.gitignore', 'google02996eb2dd5b9b34.html', 'qcloud_cdn.html'
+    '.gitignore', 'google02996eb2dd5b9b34.html', 'qcloud_cdn.html', 'robots.txt'
 ]
 
 # Deployment

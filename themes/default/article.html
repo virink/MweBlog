@@ -8,6 +8,16 @@
     {%- endif -%}
 {%- endblock -%}
 
+{% block stylesheet %}
+<link href="//cdn.bootcss.com/highlight.js/9.12.0/styles/monokai-sublime.min.css" rel="stylesheet">
+<style>
+    /*.hljs-pre{color:#a6e22e}*/
+    .markdown-body code {
+        background-color: #23241f;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
     <div class="content-wrap">
         <article class="article animated fadeIn">
